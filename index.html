@@ -3,25 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expanded Binary Search</title>
+    <title>ImposBinary Search</title>
     <script>
-        function generateArray(size) {
+        function generateImposBinaryArray(size) {
             let arr = [];
-            let usedNumbers = new Set();
+            let frequencyMap = new Map();
             let availableNumbers = Math.ceil(size / 0.98); // Ensure 98% presence
 
             while (arr.length < size) {
                 let num = Math.floor(Math.random() * availableNumbers) + 1;
-                if (!usedNumbers.has(num)) {
-                    arr.push(num);
-                    usedNumbers.add(num);
-                }
+                arr.push(num);
+                frequencyMap.set(num, (frequencyMap.get(num) || 0) + 1);
             }
+
+            // Identify uncommon numbers (threshold: appears less than 3 times)
+            let uncommonNumbers = Array.from(frequencyMap.keys()).filter(num => frequencyMap.get(num) < 3);
+
+            // Remove uncommon numbers from the array
+            arr = arr.filter(num => !uncommonNumbers.includes(num));
 
             return arr.sort((a, b) => a - b); // Keep sorted for binary search
         }
 
-        function binarySearch(arr, target) {
+        function imposBinarySearch(arr, target) {
             let left = 0, right = arr.length - 1;
             
             while (left <= right) {
@@ -37,9 +41,12 @@
             return -1; // Target not found
         }
 
-        function searchElement() {
+        function searchImposBinaryElement() {
+            window.imposBinaryArray = generateImposBinaryArray(200); // Regenerate array on each search
+            console.log(window.imposBinaryArray); // Debug: See generated numbers
+
             let target = parseInt(document.getElementById("target").value);
-            let result = binarySearch(window.binaryArray, target);
+            let result = imposBinarySearch(window.imposBinaryArray, target);
 
             if (result !== -1) {
                 document.getElementById("output").innerText = "Element found at index " + result;
@@ -48,16 +55,22 @@
             }
         }
 
-        // Generate array on page load
-        window.binaryArray = generateArray(200);
-        console.log(window.binaryArray); // Debug: See generated numbers
+        function refreshImposBinaryArray() {
+            window.imposBinaryArray = generateImposBinaryArray(200);
+            console.log("Refreshed array:", window.imposBinaryArray);
+        }
+
+        // Generate array on page load and refresh it every 5 seconds
+        window.imposBinaryArray = generateImposBinaryArray(200);
+        console.log("Initial array:", window.imposBinaryArray);
+        setInterval(refreshImposBinaryArray, 5000); // Refresh array every 5 seconds
     </script>
 </head>
 <body>
-    <h2>Expanded Binary Search</h2>
+    <h2>ImposBinary Search</h2>
     <p>Enter a number to search:</p>
     <input type="number" id="target">
-    <button onclick="searchElement()">Search</button>
+    <button onclick="searchImposBinaryElement()">Search</button>
     <p id="output"></p>
 </body>
 </html>
