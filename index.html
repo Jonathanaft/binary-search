@@ -3,74 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ImposBinary Search</title>
-    <script>
-        function generateImposBinaryArray(size) {
-            let arr = [];
-            let frequencyMap = new Map();
-            let availableNumbers = Math.ceil(size / 0.98); // Ensure 98% presence
-
-            while (arr.length < size) {
-                let num = Math.floor(Math.random() * availableNumbers) + 1;
-                arr.push(num);
-                frequencyMap.set(num, (frequencyMap.get(num) || 0) + 1);
-            }
-
-            // Identify uncommon numbers (threshold: appears less than 3 times)
-            let uncommonNumbers = Array.from(frequencyMap.keys()).filter(num => frequencyMap.get(num) < 3);
-
-            // Remove uncommon numbers from the array
-            arr = arr.filter(num => !uncommonNumbers.includes(num));
-
-            return arr.sort((a, b) => a - b); // Keep sorted for binary search
+    <title>ImposBinary</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #000; color: #fff; text-align: center; }
+        input[type="text"] { padding: 10px; font-size: 16px; margin: 20px 0; width: 200px; }
+        button { padding: 10px 20px; font-size: 16px; margin-bottom: 20px; cursor: pointer; }
+        p { font-size: 18px; margin-top: 20px; }
+        .win-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/1828/1828884.png');
+            background-size: cover;
+            animation: float 3s ease-in-out infinite;
+            z-index: 1000;
         }
-
-        function imposBinarySearch(arr, target) {
-            let left = 0, right = arr.length - 1;
-            
-            while (left <= right) {
-                let mid = Math.floor((left + right) / 2);
-                if (arr[mid] === target) {
-                    return mid; // Target found
-                } else if (arr[mid] < target) {
-                    left = mid + 1;
-                } else {
-                    right = mid - 1;
-                }
-            }
-            return -1; // Target not found
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -60%) scale(1.1); }
+            50% { transform: translate(-50%, -40%) scale(1.3); }
         }
-
-        function searchImposBinaryElement() {
-            window.imposBinaryArray = generateImposBinaryArray(200); // Regenerate array on each search
-            console.log(window.imposBinaryArray); // Debug: See generated numbers
-
-            let target = parseInt(document.getElementById("target").value);
-            let result = imposBinarySearch(window.imposBinaryArray, target);
-
-            if (result !== -1) {
-                document.getElementById("output").innerText = "Element found at index " + result;
-            } else {
-                document.getElementById("output").innerText = "Element not found";
-            }
-        }
-
-        function refreshImposBinaryArray() {
-            window.imposBinaryArray = generateImposBinaryArray(200);
-            console.log("Refreshed array:", window.imposBinaryArray);
-        }
-
-        // Generate array on page load and refresh it every 5 seconds
-        window.imposBinaryArray = generateImposBinaryArray(200);
-        console.log("Initial array:", window.imposBinaryArray);
-        setInterval(refreshImposBinaryArray, 5000); // Refresh array every 5 seconds
-    </script>
+    </style>
 </head>
 <body>
-    <h2>ImposBinary Search</h2>
-    <p>Enter a number to search:</p>
-    <input type="number" id="target">
-    <button onclick="searchImposBinaryElement()">Search</button>
-    <p id="output"></p>
+    <h1>ImposBinary</h1>
+    <input type="text" id="guess" placeholder="Enter your guess">
+    <button onclick="checkGuess()">Check</button>
+    <p id="result"></p>
+    <div id="winMessage" class="win-animation" style="display: none;"></div>
+    <script>
+        const INDEX_COUNT = 1000000;  // 1 million for better stability
+        const indexes = new Set();
+        let wonNumbers = new Set();  // Track numbers that have already been guessed and won
+
+        // Function to generate a new random number that isn't in the won numbers or the index
+        function generateNewRemovedNumber() {
+            let newNumber;
+            do {
+                newNumber = Math.floor(100000000 + Math.random() * 900000000).toString();
+            } while (wonNumbers.has(newNumber) || indexes.has(newNumber));
+            return newNumber;
+        }
+
+        // Initial setup: Generate index and pick a removed number
+        let removedNumber = generateNewRemovedNumber();
+        while (indexes.size < INDEX_COUNT - 1) {
+            let num = Math.floor(100000000 + Math.random() * 900000000).toString();
+            if (num !== removedNumber) {
+                indexes.add(num);
+            }
+        }
+
+        console.log("Removed Number:", removedNumber);  // For debugging
+
+        function checkGuess() {
+            const guess = document.getElementById("guess").value.trim();
+            const result = document.getElementById("result");
+            const winMessage = document.getElementById("winMessage");
+
+            // If the user inputs the secret code "AFT"
+            if (guess === "AFT") {
+                result.textContent = "You win with the secret code!";
+                result.style.color = "#0f0";
+                winMessage.style.display = "block";
+                return;
+            }
+
+            // Check if the guess is a 9-digit number and hasn't been guessed before
+            if (guess === removedNumber && !wonNumbers.has(guess)) {
+                result.textContent = "You win! You found the missing number!";
+                result.style.color = "#0f0";
+                wonNumbers.add(guess);  // Mark the number as already guessed
+                winMessage.style.display = "block";
+                indexes.delete(guess);  // Remove the number from the index
+
+                // Re-pick a new removed number if the index is empty
+                if (indexes.size === 0) {
+                    removedNumber = generateNewRemovedNumber();
+                    while (indexes.size < INDEX_COUNT - 1) {
+                        let num = Math.floor(100000000 + Math.random() * 900000000).toString();
+                        if (num !== removedNumber) {
+                            indexes.add(num);
+                        }
+                    }
+                    console.log("New Removed Number:", removedNumber);  // For debugging
+                }
+            } 
+            // If the guess is a valid 9-digit number and still exists in the index
+            else if (/^[0-9]{9}$/.test(guess) && indexes.has(guess) && !wonNumbers.has(guess)) {
+                result.textContent = "That number is in the index. Try again.";
+                result.style.color = "#f00";
+            } 
+            // If the guess is a previously guessed and won number
+            else if (wonNumbers.has(guess)) {
+                result.textContent = "You've already won with this number. Try another.";
+                result.style.color = "#f00";
+            } 
+            // For invalid or non-9-digit inputs
+            else {
+                result.textContent = "Invalid guess. Try again.";
+                result.style.color = "#f00";
+            }
+
+            document.getElementById("guess").value = "";  // Clear the input field
+        }
+    </script>
 </body>
 </html>
