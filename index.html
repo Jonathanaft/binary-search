@@ -3,8 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binary Search</title>
+    <title>Expanded Binary Search</title>
     <script>
+        function generateArray(size) {
+            let arr = [];
+            let usedNumbers = new Set();
+            let availableNumbers = Math.ceil(size / 0.98); // Ensure 98% presence
+
+            while (arr.length < size) {
+                let num = Math.floor(Math.random() * availableNumbers) + 1;
+                if (!usedNumbers.has(num)) {
+                    arr.push(num);
+                    usedNumbers.add(num);
+                }
+            }
+
+            return arr.sort((a, b) => a - b); // Keep sorted for binary search
+        }
+
         function binarySearch(arr, target) {
             let left = 0, right = arr.length - 1;
             
@@ -22,9 +38,8 @@
         }
 
         function searchElement() {
-            let arr = [1, 3, 5, 7, 9, 11, 13];
             let target = parseInt(document.getElementById("target").value);
-            let result = binarySearch(arr, target);
+            let result = binarySearch(window.binaryArray, target);
 
             if (result !== -1) {
                 document.getElementById("output").innerText = "Element found at index " + result;
@@ -32,10 +47,14 @@
                 document.getElementById("output").innerText = "Element not found";
             }
         }
+
+        // Generate array on page load
+        window.binaryArray = generateArray(200);
+        console.log(window.binaryArray); // Debug: See generated numbers
     </script>
 </head>
 <body>
-    <h2>Binary Search in JavaScript</h2>
+    <h2>Expanded Binary Search</h2>
     <p>Enter a number to search:</p>
     <input type="number" id="target">
     <button onclick="searchElement()">Search</button>
